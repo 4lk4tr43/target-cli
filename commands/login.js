@@ -53,3 +53,7 @@ module.exports.run = function () {
         }
     });
 };
+
+module.exports.help = function () {
+    console.log(style.info("Manage and login into Adobe Service Accounts."));
+};

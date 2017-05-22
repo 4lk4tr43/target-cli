@@ -5,7 +5,7 @@
 const chalk = require('chalk');
 
 module.exports.standard = function (msg) {
-    return msg;
+    return chalk.white(msg);
 };
 
 module.exports.info = function (msg) {

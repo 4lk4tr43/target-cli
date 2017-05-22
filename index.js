@@ -1,19 +1,19 @@
 #!/usr/bin/env node
-
+const fs = require('fs');
 const style = require('./helpers/style');
 
-switch(process.argv[2]) {
+const command = process.argv[2];
+const args = process.argv.slice(3);
 
-    case 'login':
-        require('./commands/login').run();
-        break;
-    case 'init':
-        break;
-
-    case 'version':
-        require('./commands/version').run();
-        break;
-
-    default:
-        console.log(style.error('Error: command not found.'));
+try {
+    require('./commands/' + command)
+        [process.argv.indexOf('help') > -1 ? 'help' : 'run'](args);
+} catch (e) {
+    console.error(style.error('Error: command not found. Available commands are:'));
+    console.log(style.standard(
+        fs.readdirSync('./commands')
+            .filter(v => /\.js/.test(v))
+            .join('')
+            .replace(/\.js/g, '\n'))
+    );
 }
