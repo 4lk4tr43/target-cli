@@ -1,7 +1,6 @@
 /**
  * Created by 4lk4t on 2017-05-17.
  */
-
 const inquirer = require('inquirer');
 const preferences = require('preferences');
 const style = require('../helpers/style');
@@ -11,14 +10,11 @@ let accountPreferences = new preferences('target-cli-account-preferences', {
     list: []
 });
 
-
 /*** Question login selection ***/
-let loginSelection = 'loginSelection';
-
+const loginSelection = 'loginSelection';
 const addAccount = 'Add new account...';
 const removeAccount = 'Remove account...';
-
-let loginSelectionQuestion = function (account) {
+const loginSelectionQuestion = function (account) {
 
     let defaultIndex = 0;
     let actions = [addAccount];
@@ -45,8 +41,7 @@ let loginSelectionQuestion = function (account) {
         default: defaultIndex
     }];
 };
-
-let loginSelectionResponse = function (answers) {
+const loginSelectionResponse = function (answers) {
     switch (answers[loginSelection]) {
         case addAccount:
             inquirer.prompt(loginAddQuestion(accountPreferences)).then(loginAddResponse);
@@ -66,9 +61,8 @@ let loginSelectionResponse = function (answers) {
 };
 
 /*** Question remove login ***/
-let loginNameToRemove = 'loginNameToRemove';
-
-let loginRemoveQuestion = function (account) {
+const loginNameToRemove = 'loginNameToRemove';
+const loginRemoveQuestion = function (account) {
     return [{
         name: loginNameToRemove,
         type: 'list',
@@ -77,8 +71,7 @@ let loginRemoveQuestion = function (account) {
         default: 0
     }];
 };
-
-let loginRemoveResponse = function (answers) {
+const loginRemoveResponse = function (answers) {
     accountPreferences.list = accountPreferences.list.filter((v) => v.name !== answers[loginNameToRemove]);
 
     console.log(style.info('successfully removed.'));
@@ -90,10 +83,9 @@ let loginRemoveResponse = function (answers) {
 };
 
 /*** Question add login ***/
-let loginNameToAdd = 'loginNameToAdd';
-let loginClientSecretToAdd = 'loginClientSecretToAdd';
-
-let loginAddQuestion = function (account) {
+const loginNameToAdd = 'loginNameToAdd';
+const loginClientSecretToAdd = 'loginClientSecretToAdd';
+const loginAddQuestion = function (account) {
     return [{
         name: loginNameToAdd,
         type: 'input',
@@ -120,8 +112,7 @@ let loginAddQuestion = function (account) {
         }
     }];
 };
-
-let loginAddResponse = function (answer) {
+const loginAddResponse = function (answer) {
     accountPreferences.current = answer[loginNameToAdd];
     let newAccount = {
         name: answer[loginNameToAdd],
@@ -140,7 +131,6 @@ let loginAddResponse = function (answer) {
 module.exports.run = function () {
     inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
 };
-
 module.exports.help = function () {
     console.log(style.info("Manage and login into Adobe Service Accounts."));
 };
