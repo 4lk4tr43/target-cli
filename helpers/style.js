@@ -3,18 +3,18 @@
  */
 const chalk = require('chalk');
 
-module.exports.standard = function (msg) {
+exports.standard = function (msg) {
     return chalk.white(msg);
 };
-module.exports.error = function (msg) {
+exports.error = function (msg) {
     return chalk.red(msg);
 };
-module.exports.info = function (msg) {
+exports.info = function (msg) {
     return chalk.blue(msg);
 };
-module.exports.success = function (msg) {
+exports.success = function (msg) {
     return chalk.green(msg);
 };
-module.exports.warning = function (msg) {
+exports.warning = function (msg) {
     return chalk.yellow(msg);
 };

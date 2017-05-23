@@ -128,9 +128,9 @@ const loginAddResponse = function (answer) {
 };
 
 /*** Module exports ***/
-module.exports.run = function () {
+exports.run = function () {
     inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
 };
-module.exports.help = function () {
+exports.help = function () {
     console.log(style.info('Manage and login into Adobe Service Accounts.'));
 };

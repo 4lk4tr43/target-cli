@@ -4,7 +4,7 @@
 const figlet = require('figlet');
 const style = require('../helpers/style');
 
-module.exports.run = function() {
+exports.run = function () {
     figlet('Target CLI', function (err, data) {
         if (err) {
             console.log(style.error('Error: ' + err));
@@ -14,6 +14,6 @@ module.exports.run = function() {
         }
     });
 };
-module.exports.help = function () {
+exports.help = function () {
     console.log('Outputs version, license, and contact information.')
 };
