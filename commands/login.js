@@ -132,5 +132,5 @@ module.exports.run = function () {
     inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
 };
 module.exports.help = function () {
-    console.log(style.info("Manage and login into Adobe Service Accounts."));
+    console.log(style.info('Manage and login into Adobe Service Accounts.'));
 };

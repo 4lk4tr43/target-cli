@@ -13,7 +13,7 @@ try {
         console.error(style.error('Error: command not found. Available commands are:'));
         console.log(
             style.standard(
-                fs.readdirSync('./commands')
+                fs.readdirSync(__dirname + '/commands')
                     .filter(v => /\.js/.test(v))
                     .join('')
                     .replace(/\.js/g, '\n')
