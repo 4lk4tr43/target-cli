@@ -16,6 +16,10 @@ module.exports.success = function (msg) {
     return chalk.green(msg);
 };
 
+module.exports.warning = function (msg) {
+    return chalk.yellow(msg);
+};
+
 module.exports.error = function (msg) {
     return chalk.red(msg);
 };
