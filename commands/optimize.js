@@ -13,5 +13,5 @@ module.exports.run = function () {
     }, 2000);
 };
 module.exports.help = function () {
-    console.log(style.info('Optimizes system according to Adobe\'s best practices.'));
+    console.log(style.info('Tunes system according to Adobe\'s best practices.'));
 };
