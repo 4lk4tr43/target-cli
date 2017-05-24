@@ -1,6 +1,7 @@
 /**
  * Created by 4lk4t on 2017-05-17.
  */
+const fs = require('fs');
 const inquirer = require('inquirer');
 const preferences = require('preferences');
 const style = require('../helpers/style');
@@ -84,7 +85,13 @@ const loginRemoveResponse = function (answers) {
 
 /*** Question add login ***/
 const loginNameToAdd = 'loginNameToAdd';
+const loginApiKeyToAdd = 'loginApiKeyToAdd';
 const loginClientSecretToAdd = 'loginClientSecretToAdd';
+const loginJwtIssToAdd = 'loginJwtIssToAdd';
+const loginJwtSubToAdd = 'loginJwtSubToAdd';
+const loginJwtAudToAdd = 'loginJwtAudToAdd';
+const loginJwtPemToAdd = 'loginJwtPemToAdd';
+
 const loginAddQuestion = function (account) {
     return [{
         name: loginNameToAdd,
@@ -101,6 +108,16 @@ const loginAddQuestion = function (account) {
             return true;
         }
     }, {
+        name: loginApiKeyToAdd,
+        type: 'input',
+        message: 'Enter a api key for the service account to use:',
+        validate: function (value) {
+            if (!value.length) {
+                return style.warning('Api key cannot be empty.');
+            }
+            return true;
+        }
+    }, {
         name: loginClientSecretToAdd,
         type: 'input',
         message: 'Enter a client secret for the service account to use:',
@@ -110,13 +127,70 @@ const loginAddQuestion = function (account) {
             }
             return true;
         }
+    }, {
+        name: loginJwtIssToAdd,
+        type: 'input',
+        message: 'Enter a jwt iss for the service account to use:',
+        validate: function (value) {
+            if (!value.length) {
+                return style.warning('Jwt iss cannot be empty.');
+            }
+            if (!/@AdobeOrg$/.test(value)) {
+                return style.warning('Jwt iss must end with @AdobeOrg.');
+            }
+            return true;
+        }
+    }, {
+        name: loginJwtSubToAdd,
+        type: 'input',
+        message: 'Enter a jwt sub for the service account to use:',
+        validate: function (value) {
+            if (!value.length) {
+                return style.warning('Jwt sub cannot be empty.');
+            }
+            if (!/@techacct\.adobe\.com$/.test(value)) {
+                return style.warning('Jwt sub must end with @techacct.adobe.com.');
+            }
+            return true;
+        }
+    }, {
+        name: loginJwtAudToAdd,
+        type: 'input',
+        message: 'Enter a jwt aud for the service account to use:',
+        validate: function (value) {
+            if (!value.length) {
+                return style.warning('Jwt aud cannot be empty.');
+            }
+            if (!/^https:\/\/ims-na1\.adobelogin\.com\/c/.test(value)) {
+                return style.warning('Jwt aud must begin with https://ims-na1.adobelogin.com/c/.');
+            }
+            return true;
+        }
+    }, {
+        name: loginJwtPemToAdd,
+        type: 'input',
+        message: 'Enter path to pem file used to create service account to use:',
+        validate: function (value) {
+            if (!value.length) {
+                return style.warning('Path cannot be empty.');
+            }
+            if (!fs.existsSync(value)) {
+                return style.warning('Invalid path, file could not be found.');
+            }
+            return true;
+        }
     }];
 };
 const loginAddResponse = function (answer) {
     accountPreferences.current = answer[loginNameToAdd];
     let newAccount = {
         name: answer[loginNameToAdd],
-        clientSecret: answer[loginClientSecretToAdd]
+        apiKey: answer[loginApiKeyToAdd],
+        clientSecret: answer[loginClientSecretToAdd],
+        iss: answer[loginJwtIssToAdd],
+        sub: answer[loginJwtSubToAdd],
+        aud: answer[loginJwtAudToAdd],
+        pem: fs.readFileSync(answer[loginJwtPemToAdd]).toString('ascii')
     };
     accountPreferences.list.push(newAccount);
     accountPreferences.list = accountPreferences.list.sort((a, b) => {
@@ -128,8 +202,17 @@ const loginAddResponse = function (answer) {
 };
 
 /*** Module exports ***/
-exports.run = function () {
-    inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
+exports.run = function (args) {
+    if (args.indexOf('info') > -1) {
+        let currentAccount = accountPreferences.list.filter((v) => v.name === accountPreferences.current)[0];
+        for (let p in currentAccount) {
+            if (currentAccount.hasOwnProperty(p)) {
+                console.log(style.info(p) + '\n' + style.standard(currentAccount[p]));
+            }
+        }
+    } else {
+        inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
+    }
 };
 exports.help = function () {
     console.log(style.info('Manage and login into Adobe Service Accounts.'));
