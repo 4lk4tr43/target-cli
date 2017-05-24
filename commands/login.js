@@ -204,7 +204,7 @@ const loginAddResponse = function (answer) {
 /*** Module exports ***/
 exports.run = function (args) {
     if (args.indexOf('info') > -1) {
-        let currentAccount = accountPreferences.list.filter((v) => v.name === accountPreferences.current)[0];
+        let currentAccount = exports.getCurrentAccount();
         for (let p in currentAccount) {
             if (currentAccount.hasOwnProperty(p)) {
                 console.log(style.info(p) + '\n' + style.standard(currentAccount[p]));
@@ -216,4 +216,7 @@ exports.run = function (args) {
 };
 exports.help = function () {
     console.log(style.info('Manage and login into Adobe Service Accounts.'));
+};
+exports.getCurrentAccount = function () {
+    return accountPreferences.list.filter((v) => v.name === accountPreferences.current)[0];
 };
