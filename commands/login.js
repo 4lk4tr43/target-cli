@@ -4,6 +4,9 @@
 const fs = require('fs');
 const inquirer = require('inquirer');
 const preferences = require('preferences');
+const https = require('https');
+const jwt = require('jwt-simple');
+const querystring = require('querystring');
 const style = require('../helpers/style');
 
 let accountPreferences = new preferences('target-cli-account-preferences', {
@@ -85,6 +88,7 @@ const loginRemoveResponse = function (answers) {
 
 /*** Question add login ***/
 const loginNameToAdd = 'loginNameToAdd';
+const loginTenantToAdd = 'loginTenantToAdd';
 const loginApiKeyToAdd = 'loginApiKeyToAdd';
 const loginClientSecretToAdd = 'loginClientSecretToAdd';
 const loginJwtIssToAdd = 'loginJwtIssToAdd';
@@ -104,6 +108,16 @@ const loginAddQuestion = function (account) {
             if (account.list.filter((v) => v.name === value).length) {
                 return style.warning('Login name does already exist. Please do not use the following names:\n')
                     + style.standard(account.list.map((v) => v.name).join('\n'));
+            }
+            return true;
+        }
+    },{
+        name: loginTenantToAdd,
+        type: 'input',
+        message: 'Enter a tenant for the new login configuration:',
+        validate: function (value) {
+            if (!value.length) {
+                return style.warning('Login tenant must be at least 1 character long.');
             }
             return true;
         }
@@ -185,6 +199,7 @@ const loginAddResponse = function (answer) {
     accountPreferences.current = answer[loginNameToAdd];
     let newAccount = {
         name: answer[loginNameToAdd],
+        tenant: answer[loginTenantToAdd],
         apiKey: answer[loginApiKeyToAdd],
         clientSecret: answer[loginClientSecretToAdd],
         iss: answer[loginJwtIssToAdd],
@@ -201,15 +216,20 @@ const loginAddResponse = function (answer) {
     inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
 };
 
+
 /*** Module exports ***/
 exports.run = function (args) {
     if (args.indexOf('info') > -1) {
-        let currentAccount = exports.getCurrentAccount();
+        let currentAccount = getCurrentAccount();
         for (let p in currentAccount) {
             if (currentAccount.hasOwnProperty(p)) {
                 console.log(style.info(p) + '\n' + style.standard(currentAccount[p]));
             }
         }
+    } else if (args.indexOf('check') > -1) {
+        checkLogin()
+            .then(() => console.log(style.success('Connection successfully established.')))
+            .catch(() => console.error(style.error('Connection failed.')));
     } else {
         inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
     }
@@ -217,6 +237,93 @@ exports.run = function (args) {
 exports.help = function () {
     console.log(style.info('Manage and login into Adobe Service Accounts.'));
 };
-exports.getCurrentAccount = function () {
+
+/*** Private Functions & Members ***/
+let currentAccessToken;
+
+const issueNewAccessToken = function() {
+    return new Promise(function (resolve, reject) {
+        const config = getConfig();
+        const jwtToken = getJwtToken(config).toString('base64');
+
+        const postData = querystring.stringify({
+            client_id: config.clientId,
+            client_secret: config.clientSecret,
+            jwt_token: jwtToken
+        });
+
+        const postOptions = {
+            host: 'ims-na1.adobelogin.com',
+            port: '443',
+            path: '/ims/exchange/jwt/',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        };
+
+        let req = https.request(postOptions, (res) => {
+            res.setEncoding('utf8');
+            res.on('data', (accessToken) => {
+                resolve(accessToken);
+            });
+        });
+        req.on('error', (e) => {
+            reject(e);
+        });
+        req.write(postData);
+        req.end();
+    });
+};
+
+const getAccessToken = function () {
+    return new Promise(function(resolve, reject) {
+        if (typeof currentAccessToken === 'undefined' || isTokenExpired()) {
+            issueNewAccessToken().then((v) => {
+                currentAccessToken.token = v;
+                currentAccessToken.expirationDate = new Date(Date.now() + v['expires_in']);
+                resolve(v);
+            }).catch((e) => reject(e));
+        } else {
+            resolve(currentAccessToken.token);
+        }
+    });
+};
+
+const checkLogin = function () {
+    return new Promise(function (resolve, reject) {
+        getAccessToken().then(() => {
+            resolve();
+        }).catch(() => reject(style.error('Could not quire access token.')));
+    });
+};
+
+const getCurrentAccount = function () {
     return accountPreferences.list.filter((v) => v.name === accountPreferences.current)[0];
+};
+
+const getConfig = function () {
+    const currentAccount = getCurrentAccount();
+    return {
+        payload: {
+            'exp': Math.round(87000 + Date.now()/1000),
+            'iss': currentAccount.iss,
+            'sub': currentAccount.sub,
+            'aud': currentAccount.aud,
+            'https://ims-na1.adobelogin.com/s/ent_marketing_sdk' : true
+        },
+        clientId: currentAccount.apiKey,
+        clientSecret: currentAccount.clientSecret,
+        pem: currentAccount.pem,
+        algorithm: 'RS256'
+    };
+};
+
+const getJwtToken = function (config) {
+    return jwt.encode(config.payload, config.pem, config.algorithm);
+};
+
+const isTokenExpired = function() {
+    return currentAccessToken.expirationDate - 30000 < Date.now();
 };
