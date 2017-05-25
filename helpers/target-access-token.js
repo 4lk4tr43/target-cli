@@ -33,7 +33,7 @@ exports.TargetAccessToken = class {
 
             const req = https.request(postOptions, (res) => {
                 res.setEncoding('utf8');
-                res.on('data', (accessToken) => resolve(accessToken));
+                res.on('data', (accessToken) => resolve(JSON.parse(accessToken)));
             });
             req.on('error', (e) => reject(e));
 
@@ -57,7 +57,7 @@ exports.TargetAccessToken = class {
                     resolve(v);
                 }).catch((e) => reject(e));
             } else {
-                resolve(current.token);
+                resolve(this.current.token);
             }
         });
     }

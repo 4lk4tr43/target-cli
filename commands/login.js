@@ -239,14 +239,13 @@ exports.run = function (args) {
     } else if (args.indexOf('check') > -1) {
         new TargetAccessToken.TargetAccessToken(getCurrentAccount()).token
             .then((v) => {
-                const response = JSON.parse(v);
-                if (response.hasOwnProperty('access_token')) {
-                    console.log(style.success('Successfully acquired access token.\n') + response['access_token']);
+                if (v.hasOwnProperty('access_token')) {
+                    console.log(style.success('Successfully acquired access token.\n') + v['access_token']);
                 } else {
                     console.error(style.error('Could not acquire access token.\n') + v);
                 }
             })
-            .catch((e) => console.error(style.error('Connection could not be established.\n') + e))
+            .catch((e) => console.error(style.error('Connection could not be established.\n') + e));
     } else {
         inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
     }
