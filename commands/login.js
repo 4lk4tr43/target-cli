@@ -250,6 +250,7 @@ exports.run = function (args) {
         inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
     }
 };
+
 exports.help = function () {
     console.log(style.info('Manage and login into Adobe Service Accounts.'));
 };
