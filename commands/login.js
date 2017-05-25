@@ -4,20 +4,27 @@
 const fs = require('fs');
 const inquirer = require('inquirer');
 const preferences = require('preferences');
-const https = require('https');
-const jwt = require('jwt-simple');
-const querystring = require('querystring');
 const style = require('../helpers/style');
+const TargetAccessToken = require('../helpers/target-access-token');
+
 
 let accountPreferences = new preferences('target-cli-account-preferences', {
     current: '',
     list: []
 });
 
+const getCurrentAccount = function () {
+    return accountPreferences.list.filter((v) => v.name === accountPreferences.current)[0];
+};
+
+
+/** Questions **/
+
 /*** Question login selection ***/
 const loginSelection = 'loginSelection';
 const addAccount = 'Add new account...';
 const removeAccount = 'Remove account...';
+
 const loginSelectionQuestion = function (account) {
 
     let defaultIndex = 0;
@@ -45,6 +52,7 @@ const loginSelectionQuestion = function (account) {
         default: defaultIndex
     }];
 };
+
 const loginSelectionResponse = function (answers) {
     switch (answers[loginSelection]) {
         case addAccount:
@@ -66,6 +74,7 @@ const loginSelectionResponse = function (answers) {
 
 /*** Question remove login ***/
 const loginNameToRemove = 'loginNameToRemove';
+
 const loginRemoveQuestion = function (account) {
     return [{
         name: loginNameToRemove,
@@ -75,6 +84,7 @@ const loginRemoveQuestion = function (account) {
         default: 0
     }];
 };
+
 const loginRemoveResponse = function (answers) {
     accountPreferences.list = accountPreferences.list.filter((v) => v.name !== answers[loginNameToRemove]);
 
@@ -195,6 +205,7 @@ const loginAddQuestion = function (account) {
         }
     }];
 };
+
 const loginAddResponse = function (answer) {
     accountPreferences.current = answer[loginNameToAdd];
     let newAccount = {
@@ -216,20 +227,26 @@ const loginAddResponse = function (answer) {
     inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
 };
 
-
-/*** Module exports ***/
+/** Module exports **/
 exports.run = function (args) {
     if (args.indexOf('info') > -1) {
-        let currentAccount = getCurrentAccount();
+        const currentAccount = getCurrentAccount();
         for (let p in currentAccount) {
             if (currentAccount.hasOwnProperty(p)) {
                 console.log(style.info(p) + '\n' + style.standard(currentAccount[p]));
             }
         }
     } else if (args.indexOf('check') > -1) {
-        checkLogin()
-            .then(() => console.log(style.success('Connection successfully established.')))
-            .catch(() => console.error(style.error('Connection failed.')));
+        new TargetAccessToken.TargetAccessToken(getCurrentAccount()).token
+            .then((v) => {
+                const response = JSON.parse(v);
+                if (response.hasOwnProperty('access_token')) {
+                    console.log(style.success('Successfully acquired access token.\n') + response['access_token']);
+                } else {
+                    console.error(style.error('Could not acquire access token.\n') + v);
+                }
+            })
+            .catch((e) => console.error(style.error('Connection could not be established.\n') + e))
     } else {
         inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
     }
@@ -238,92 +255,4 @@ exports.help = function () {
     console.log(style.info('Manage and login into Adobe Service Accounts.'));
 };
 
-/*** Private Functions & Members ***/
-let currentAccessToken;
 
-const issueNewAccessToken = function() {
-    return new Promise(function (resolve, reject) {
-        const config = getConfig();
-        const jwtToken = getJwtToken(config).toString('base64');
-
-        const postData = querystring.stringify({
-            client_id: config.clientId,
-            client_secret: config.clientSecret,
-            jwt_token: jwtToken
-        });
-
-        const postOptions = {
-            host: 'ims-na1.adobelogin.com',
-            port: '443',
-            path: '/ims/exchange/jwt/',
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': Buffer.byteLength(postData)
-            }
-        };
-
-        let req = https.request(postOptions, (res) => {
-            res.setEncoding('utf8');
-            res.on('data', (accessToken) => {
-                resolve(accessToken);
-            });
-        });
-        req.on('error', (e) => {
-            reject(e);
-        });
-        req.write(postData);
-        req.end();
-    });
-};
-
-const getAccessToken = function () {
-    return new Promise(function(resolve, reject) {
-        if (typeof currentAccessToken === 'undefined' || isTokenExpired()) {
-            issueNewAccessToken().then((v) => {
-                currentAccessToken.token = v;
-                currentAccessToken.expirationDate = new Date(Date.now() + v['expires_in']);
-                resolve(v);
-            }).catch((e) => reject(e));
-        } else {
-            resolve(currentAccessToken.token);
-        }
-    });
-};
-
-const checkLogin = function () {
-    return new Promise(function (resolve, reject) {
-        getAccessToken().then(() => {
-            resolve();
-        }).catch(() => reject(style.error('Could not quire access token.')));
-    });
-};
-
-const getCurrentAccount = function () {
-    return accountPreferences.list.filter((v) => v.name === accountPreferences.current)[0];
-};
-
-const getConfig = function () {
-    const currentAccount = getCurrentAccount();
-    return {
-        payload: {
-            'exp': Math.round(87000 + Date.now()/1000),
-            'iss': currentAccount.iss,
-            'sub': currentAccount.sub,
-            'aud': currentAccount.aud,
-            'https://ims-na1.adobelogin.com/s/ent_marketing_sdk' : true
-        },
-        clientId: currentAccount.apiKey,
-        clientSecret: currentAccount.clientSecret,
-        pem: currentAccount.pem,
-        algorithm: 'RS256'
-    };
-};
-
-const getJwtToken = function (config) {
-    return jwt.encode(config.payload, config.pem, config.algorithm);
-};
-
-const isTokenExpired = function() {
-    return currentAccessToken.expirationDate - 30000 < Date.now();
-};
