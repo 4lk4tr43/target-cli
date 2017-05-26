@@ -35,7 +35,7 @@ exports.TargetAccessToken = class {
                 res.setEncoding('utf8');
                 res.on('data', (accessToken) => resolve(JSON.parse(accessToken)));
             });
-            req.on('error', (e) => reject(e));
+            req.on('error', reject);
 
             req.write(postData);
             req.end();
@@ -55,7 +55,7 @@ exports.TargetAccessToken = class {
                         expirationDate: new Date(Date.now() + v['expires_in'])
                     };
                     resolve(v);
-                }).catch((e) => reject(e));
+                }).catch(reject);
             } else {
                 resolve(this.current.token);
             }

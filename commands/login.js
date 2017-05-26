@@ -5,8 +5,7 @@ const fs = require('fs');
 const inquirer = require('inquirer');
 const preferences = require('preferences');
 const style = require('../helpers/style');
-const TargetAccessToken = require('../helpers/target-access-token');
-
+const TargetRequest = require('../helpers/target-request');
 
 let accountPreferences = new preferences('target-cli-account-preferences', {
     current: '',
@@ -17,6 +16,7 @@ const getCurrentAccount = function () {
     return accountPreferences.list.filter((v) => v.name === accountPreferences.current)[0];
 };
 
+let targetRequest = null;
 
 /** Questions **/
 
@@ -237,15 +237,16 @@ exports.run = function (args) {
             }
         }
     } else if (args.indexOf('check') > -1) {
-        new TargetAccessToken.TargetAccessToken(getCurrentAccount()).token
-            .then((v) => {
-                if (v.hasOwnProperty('access_token')) {
-                    console.log(style.success('Successfully acquired access token.\n') + v['access_token']);
-                } else {
-                    console.error(style.error('Could not acquire access token.\n') + v);
-                }
-            })
-            .catch((e) => console.error(style.error('Connection could not be established.\n') + e));
+        if (!targetRequest) {
+            targetRequest = new TargetRequest.TargetRequest(getCurrentAccount());
+            targetRequest.init()
+                .then(() => {
+                    targetRequest.test()
+                        .then((v) =>
+                            console.log(style.success('Connection successfully established.')))
+                        .catch((v) => console.error(style.error('Connection failed.\n') + v));
+                }).catch((v) => console.error(style.error('Could not retrieve access token.\n') + v));
+        }
     } else {
         inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
     }
