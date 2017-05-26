@@ -6,17 +6,9 @@ const inquirer = require('inquirer');
 const preferences = require('preferences');
 const style = require('../helpers/style');
 const TargetRequest = require('../helpers/target-request');
+const accounts = require('../helpers/accounts');
 
-let accountPreferences = new preferences('target-cli-account-preferences', {
-    current: '',
-    list: []
-});
-
-const getCurrentAccount = function () {
-    return accountPreferences.list.filter((v) => v.name === accountPreferences.current)[0];
-};
-
-let targetRequest = null;
+let accountPreferences = accounts.accountPreferences;
 
 /** Questions **/
 
@@ -230,20 +222,18 @@ const loginAddResponse = function (answer) {
 /** Module exports **/
 exports.run = function (args) {
     if (args.indexOf('info') > -1) {
-        const currentAccount = getCurrentAccount();
+        const currentAccount = accounts.current();
         for (let p in currentAccount) {
             if (currentAccount.hasOwnProperty(p)) {
                 console.log(style.info(p) + '\n' + style.standard(currentAccount[p]));
             }
         }
     } else if (args.indexOf('check') > -1) {
-        if (!targetRequest) {
-            targetRequest = new TargetRequest.TargetRequest(getCurrentAccount());
+        new TargetRequest.TargetRequest(accounts.current())
+            .test()
+            .then((v) => console.log(style.success('Connection successfully established.')))
+            .catch((v) => console.error(style.error('Connection failed.\n') + v));
 
-            targetRequest.test()
-                .then((v) => console.log(style.success('Connection successfully established.')))
-                .catch((v) => console.error(style.error('Connection failed.\n') + v));
-        }
     } else {
         inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
     }
@@ -252,5 +242,6 @@ exports.run = function (args) {
 exports.help = function () {
     console.log(style.info('Manage and login into Adobe Service Accounts.'));
 };
+
 
 

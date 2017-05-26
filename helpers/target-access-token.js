@@ -9,7 +9,6 @@ exports.TargetAccessToken = class {
 
     constructor(account) {
         this.account = account;
-        this.current = null;
     }
 
     get newToken() {
@@ -43,21 +42,23 @@ exports.TargetAccessToken = class {
     }
 
     get isExpired() {
-        return this.current === null || this.current.expirationDate - 30000 < Date.now();
+        return typeof this.account.accessToken === 'undefined' ||
+            this.account.accessToken.token === '' ||
+            this.account.accessToken.expirationDate - 30000 < Date.now();
     }
 
     get token() {
         return new Promise((resolve, reject) => {
             if (this.isExpired) {
                 this.newToken.then((v) => {
-                    this.current = {
+                    this.account.accessToken = {
                         token: v,
                         expirationDate: new Date(Date.now() + v['expires_in'])
                     };
                     resolve(v);
                 }).catch(reject);
             } else {
-                resolve(this.current.token);
+                resolve(this.account.accessToken.token);
             }
         });
     }
