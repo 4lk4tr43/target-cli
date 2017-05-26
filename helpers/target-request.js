@@ -10,31 +10,22 @@ exports.TargetRequest = class {
         this.host = 'mc.adobe.io';
         this.port = '443';
         this.account = account;
-    }
 
-    init() {
         this.accessToken = new TargetAccessToken.TargetAccessToken(this.account);
 
-        return new Promise((resolve, reject) => {
-            this.accessToken.token
-                .then((v) => {
-                    if (v.hasOwnProperty('access_token')) {
-                        resolve();
-                    } else {
-                        reject('Could not acquire access token.\n' + v);
-                    }
-                });
-        });
+        this.get = this.createRequestMethod('GET');
+        this.post = this.createRequestMethod('POST');
+        this.put = this.createRequestMethod('PUT');
+        this.delete = this.createRequestMethod('DELETE');
     }
 
     test() {
         return new Promise((resolve, reject) => {
             this.get('/target/environments').then((v) => {
-                const response = JSON.parse(v);
-                if (response.hasOwnProperty('error_code')) {
-                    reject(response['message']);
+                if (v.hasOwnProperty('error_code')) {
+                    reject(v['message']);
                 } else {
-                    resolve(response);
+                    resolve(v);
                 }
             }).catch(reject);
         });
@@ -50,143 +41,68 @@ exports.TargetRequest = class {
                         'X-Api-Key': this.account.apiKey
                     })
                 })
-                .catch((v) => reject('Failed to retrieve request header access token.\n' + v));
+                .catch((v) => reject('Failed to retrieve request access token.\n' + v));
         });
     }
 
-    g() {
-        () => {
-            return new Promise((resolve, reject) => {
-                this.requestHeaders
-                    .then((headers) => {
-                        const requestPath = '/' + this.account.tenant +
-                            ((typeof params === 'undefined' || Object.keys(params).length === 0) ?
-                                path : path + '?' + querystring.stringify(params));
-                        const options = {
-                            host: this.host,
-                            port: this.port,
-                            path: requestPath,
-                            method: 'GET',
-                            headers: headers
-                        };
-                        const req = https.request(options, (res) => {
-                            res.setEncoding('utf8');
-                            res.on('data', (data) => resolve(data));
-                        });
-                        req.on('error', reject);
-                        req.end();
-                    })
-                    .catch(reject)
-            });
+    createRequestMethod(method) {
+        const hasBody = method === 'POST' || method === 'PUT';
+
+        const generateRequestPath = (account, path, params) => {
+            return '/' + this.account.tenant +
+                ((typeof params === 'undefined' || Object.keys(params).length === 0) ?
+                    path : path + '?' + querystring.stringify(params));
+        };
+
+        const options = {
+            host: this.host,
+            port: this.port,
+            method: method
+        };
+
+        const request = (headers, path, params, resolve, reject) => {
+            const req = https.request(
+                Object.assign(
+                    {},
+                    options,
+                    {
+                        headers: headers,
+                        path: generateRequestPath(this.account, path, params)
+                    }), (res) => {
+                    res.setEncoding('utf8');
+                    res.on('data', (data) => resolve(JSON.parse(data)));
+                });
+            req.on('error', reject);
+            return req;
+        };
+
+        if (hasBody) {
+            return (path, params, data) => {
+                return new Promise((resolve, reject) => {
+                    this.requestHeaders
+                        .then((headers) => {
+                            const bodyData = querystring.stringify(data);
+                            const req = request(
+                                Object.assign(
+                                    {}, headers,
+                                    {'Content-Length': Buffer.byteLength(bodyData)}
+                                ),
+                                path, params, resolve, reject
+                            );
+                            req.write(bodyData);
+                            req.end();
+                        })
+                        .catch(reject)
+                });
+            }
+        } else {
+            return (path, params) => {
+                return new Promise((resolve, reject) => {
+                    this.requestHeaders
+                        .then((headers) => request(headers, path, params, resolve, reject).end())
+                        .catch(reject)
+                });
+            }
         }
-    }
-
-    // TODO remove repetition in methods
-    get(path, params) {
-        return new Promise((resolve, reject) => {
-            this.requestHeaders
-                .then((headers) => {
-                    const requestPath = '/' + this.account.tenant +
-                        ((typeof params === 'undefined' || Object.keys(params).length === 0) ?
-                            path : path + '?' + querystring.stringify(params));
-                    const options = {
-                        host: this.host,
-                        port: this.port,
-                        path: requestPath,
-                        method: 'GET',
-                        headers: headers
-                    };
-                    const req = https.request(options, (res) => {
-                        res.setEncoding('utf8');
-                        res.on('data', (data) => resolve(data));
-                    });
-                    req.on('error', reject);
-                    req.end();
-                })
-                .catch(reject)
-        });
-    }
-
-    post(path, params, data) {
-        return new Promise((resolve, reject) => {
-            this.requestHeaders
-                .then((headers) => {
-                    const requestPath = '/' + this.account.tenant +
-                        ((typeof params === 'undefined' || Object.keys(params).length === 0) ?
-                            path : path + '?' + querystring.stringify(params));
-                    const postData = querystring.stringify(data);
-                    const options = {
-                        host: this.host,
-                        port: this.port,
-                        path: requestPath,
-                        method: 'POST',
-                        headers: Object.assign({}, headers, {'Content-Length': Buffer.byteLength(postData)})
-                    };
-                    const req = https.request(options, (res) => {
-                        res.setEncoding('utf8');
-                        res.on('data', (data) => resolve(data));
-                    });
-                    req.on('error', reject);
-                    req.write(postData);
-                    req.end();
-                })
-                .catch(reject)
-        });
-    }
-
-    put(path, params, data) {
-        return new Promise((resolve, reject) => {
-            return new Promise((resolve, reject) => {
-                this.requestHeaders
-                    .then((headers) => {
-                        const requestPath = '/' + this.account.tenant +
-                            ((typeof params === 'undefined' || Object.keys(params).length === 0) ?
-                                path : path + '?' + querystring.stringify(params));
-                        const postData = querystring.stringify(data);
-                        const options = {
-                            host: this.host,
-                            port: this.port,
-                            path: requestPath,
-                            method: 'PUT',
-                            headers: Object.assign({}, headers, {'Content-Length': Buffer.byteLength(postData)})
-                        };
-                        const req = https.request(options, (res) => {
-                            res.setEncoding('utf8');
-                            res.on('data', (data) => resolve(data));
-                        });
-                        req.on('error', reject);
-                        req.write(postData);
-                        req.end();
-                    })
-                    .catch(reject)
-            });
-        });
-    }
-
-    delete(path, params) {
-        return new Promise((resolve, reject) => {
-            return new Promise((resolve, reject) => {
-                this.requestHeaders
-                    .then((headers) => {
-                        const requestPath = '/' + this.account.tenant +
-                            ((typeof params === 'undefined' || Object.keys(params).length === 0) ?
-                                path : path + '?' + querystring.stringify(params));
-                        const options = {
-                            host: this.host,
-                            port: this.port,
-                            path: requestPath,
-                            method: 'GET',
-                            headers: headers
-                        };
-                        const req = https.request(options, (res) => {
-                            res.setEncoding('utf8');
-                            res.on('data', (data) => resolve(data));
-                        });
-                        req.on('error', reject);
-                        req.end();
-                    })
-                    .catch(reject)
-            });
-        });
     }
 };

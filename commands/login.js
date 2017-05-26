@@ -121,7 +121,7 @@ const loginAddQuestion = function (account) {
             }
             return true;
         }
-    },{
+    }, {
         name: loginTenantToAdd,
         type: 'input',
         message: 'Enter a tenant for the new login configuration:',
@@ -239,13 +239,10 @@ exports.run = function (args) {
     } else if (args.indexOf('check') > -1) {
         if (!targetRequest) {
             targetRequest = new TargetRequest.TargetRequest(getCurrentAccount());
-            targetRequest.init()
-                .then(() => {
-                    targetRequest.test()
-                        .then((v) =>
-                            console.log(style.success('Connection successfully established.')))
-                        .catch((v) => console.error(style.error('Connection failed.\n') + v));
-                }).catch((v) => console.error(style.error('Could not retrieve access token.\n') + v));
+
+            targetRequest.test()
+                .then((v) => console.log(style.success('Connection successfully established.')))
+                .catch((v) => console.error(style.error('Connection failed.\n') + v));
         }
     } else {
         inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
