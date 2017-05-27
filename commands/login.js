@@ -223,25 +223,30 @@ const loginAddResponse = function (answer) {
 
 /** Module exports **/
 exports.run = function (args) {
-    if (args[0] === 'info') {
-        console.log(objectToString.render(accounts.current()));
-    } else if (args[0] === 'check') {
-        const spinner = new Spinner('Connecting... %s');
-        spinner.setSpinnerString(style.defaultSpinner);
-        spinner.start();
-        new TargetRequest.TargetRequest(accounts.current())
-            .test()
-            .then(() => {
-                spinner.stop(true);
-                console.log(style.success('Connection successfully established.'));
-            })
-            .catch((v) => {
-                spinner.stop(true);
-                console.error(style.error('Connection failed.\n') + v)
-            });
+    switch (args[0]) {
+        case 'info':
+            console.log(objectToString.render(accounts.current()));
+            break;
 
-    } else {
-        inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
+        case 'check':
+            const spinner = new Spinner('Connecting... %s');
+            spinner.setSpinnerString(style.defaultSpinner);
+            spinner.start();
+            new TargetRequest.TargetRequest(accounts.current())
+                .test()
+                .then(() => {
+                    spinner.stop(true);
+                    console.log(style.success('Connection successfully established.'));
+                })
+                .catch((v) => {
+                    spinner.stop(true);
+                    console.error(style.error('Connection failed.\n') + v)
+                });
+            break;
+
+        default:
+            inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
+            break;
     }
 };
 
