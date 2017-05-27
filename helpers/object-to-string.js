@@ -5,24 +5,24 @@ const style = require('./style');
 
 exports.render = function (o) {
     const createHeadline = (property, level) => {
-        let separator = '';
+        let prefix = '';
         for (let i = 0; i < level; i++) {
-            separator += '# ';
+            prefix += '# ';
         }
-        return '\n' + style.info(separator + property);
+        return '\n' + style.info(prefix + property);
     };
 
-    const convertObjectToStringIter = (o, l) => {
+    const renderRecursive = (o, l) => {
         switch (typeof o) {
             case 'Array':
             case 'object':
-                let accumulator = '';
+                let fringe = '';
                 for (let p in o) {
                     if (!o.hasOwnProperty(p)) continue;
 
-                    accumulator += createHeadline(p, l) + convertObjectToStringIter(o[p], l + 1);
+                    fringe += createHeadline(p, l) + renderRecursive(o[p], l + 1);
                 }
-                return accumulator;
+                return fringe;
                 break;
             default:
                 return '\n' + o;
@@ -30,5 +30,5 @@ exports.render = function (o) {
         }
     };
 
-    return convertObjectToStringIter(o, 0);
+    return renderRecursive(o, 0);
 };
