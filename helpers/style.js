@@ -18,3 +18,5 @@ exports.success = function (msg) {
 exports.warning = function (msg) {
     return chalk.yellow(msg);
 };
+
+exports.defaultSpinner = 18;

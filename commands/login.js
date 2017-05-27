@@ -4,9 +4,11 @@
 const fs = require('fs');
 const inquirer = require('inquirer');
 const preferences = require('preferences');
+const Spinner = require('cli-spinner').Spinner;
 const style = require('../helpers/style');
 const TargetRequest = require('../helpers/target-request');
 const accounts = require('../helpers/accounts');
+const objectToString = require('../helpers/object-to-string');
 
 let accountPreferences = accounts.accountPreferences;
 
@@ -221,18 +223,22 @@ const loginAddResponse = function (answer) {
 
 /** Module exports **/
 exports.run = function (args) {
-    if (args.indexOf('info') > -1) {
-        const currentAccount = accounts.current();
-        for (let p in currentAccount) {
-            if (currentAccount.hasOwnProperty(p)) {
-                console.log(style.info(p) + '\n' + style.standard(currentAccount[p]));
-            }
-        }
-    } else if (args.indexOf('check') > -1) {
+    if (args[0] === 'info') {
+        console.log(objectToString.render(accounts.current()));
+    } else if (args[0] === 'check') {
+        const spinner = new Spinner('Connecting... %s');
+        spinner.setSpinnerString(style.defaultSpinner);
+        spinner.start();
         new TargetRequest.TargetRequest(accounts.current())
             .test()
-            .then((v) => console.log(style.success('Connection successfully established.')))
-            .catch((v) => console.error(style.error('Connection failed.\n') + v));
+            .then(() => {
+                spinner.stop(true);
+                console.log(style.success('Connection successfully established.'));
+            })
+            .catch((v) => {
+                spinner.stop(true);
+                console.error(style.error('Connection failed.\n') + v)
+            });
 
     } else {
         inquirer.prompt(loginSelectionQuestion(accountPreferences)).then(loginSelectionResponse);
