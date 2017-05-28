@@ -2,10 +2,14 @@
   "name": "target-cli",
   "version": "1.0.0",
   "description": "",
-  "scripts": {},
   "author": "Andreas Kaufmann",
   "license": "ISC",
+
   "preferGlobal": true,
+  "scripts": {
+    "test": "jasmine"
+  },
+
   "bin": {
     "target": "index.js"
   },
@@ -16,5 +20,8 @@
     "inquirer": "^3.0.6",
     "jwt-simple": "^0.5.1",
     "preferences": "^0.2.1"
+  },
+  "devDependencies": {
+    "jasmine": "^2.6.0"
   }
 }

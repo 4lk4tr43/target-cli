@@ -4,6 +4,10 @@
 
 exports.run = function (args) {
     switch (args[0]) {
+        case 'push':
+            const filePath = args[1];
+            const offerId = args[2];
+            break;
 
         default:
             break;

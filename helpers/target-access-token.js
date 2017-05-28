@@ -44,7 +44,7 @@ exports.TargetAccessToken = class {
     get isExpired() {
         return typeof this.account.accessToken === 'undefined' ||
             this.account.accessToken.token === '' ||
-            this.account.accessToken.expirationDate - 30000 < Date.now();
+            new Date(this.account.accessToken.expirationDate) - new Date(30000) < Date.now();
     }
 
     get token() {
