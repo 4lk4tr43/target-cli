@@ -1,7 +1,6 @@
 /**
  * Created by 4lk4t on 2017-05-28.
  */
-
 const account = require('../src/helpers/accounts')
 
 describe('It should export account preferences', () => {
