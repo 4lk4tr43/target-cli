@@ -6,7 +6,7 @@
   "license": "ISC",
   "preferGlobal": true,
   "scripts": {
-    "check": "clear && concurrently \"npm test\" \"npm run lint\"",
+    "check": "clear && npm test & npm run lint",
     "dev": "nodemon --watch src --watch spec --watch index.js --exec \"npm run check\"",
     "lint": "eslint .",
     "test": "jasmine"
