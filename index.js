@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 const fs = require('fs');
-const style = require('./helpers/style');
+const style = require('./src/helpers/style');
 
 const command = process.argv[2];
 const args = process.argv.slice(3);
 
 try {
-    require(__dirname + '/commands/' + command)[process.argv.indexOf('help') > -1 ? 'help' : 'run'](args);
+    require(__dirname + '/src/commands/' + command)[process.argv.indexOf('help') > -1 ? 'help' : 'run'](args);
 } catch (e) {
     if (/Error:\sCannot\sfind\smodule/.test(e)) {
         console.error(style.error('Error: command not found. Available commands are:'));
