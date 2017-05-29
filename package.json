@@ -6,8 +6,8 @@
   "license": "ISC",
   "preferGlobal": true,
   "scripts": {
-    "check": "concurrently \"npm test\" \"npm run lint\"",
-    "dev": "nodemon --watch src --watch spec --watch index.js node_modules/concurrently/src/main.js \"npm test\" \"npm run lint\"",
+    "check": "clear && concurrently \"npm test\" \"npm run lint\"",
+    "dev": "nodemon --watch src --watch spec --watch index.js --exec \"npm run check\"",
     "lint": "eslint .",
     "test": "jasmine"
   },
@@ -23,6 +23,7 @@
     "preferences": "^0.2.1"
   },
   "devDependencies": {
+    "clear": "0.0.1",
     "concurrently": "^3.4.0",
     "eslint": "^3.19.0",
     "eslint-config-standard": "^10.2.1",

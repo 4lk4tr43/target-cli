@@ -9,5 +9,6 @@ exports.accountPreferences = new Preferences('target-cli-account-preferences', {
 })
 
 exports.current = function () {
-  return exports.accountPreferences.list.filter((v) => v.name === exports.accountPreferences.current)[0]
+  let result = exports.accountPreferences.list.filter((v) => v.name === exports.accountPreferences.current)[0]
+  return result === undefined ? null : result
 }
