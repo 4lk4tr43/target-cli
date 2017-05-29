@@ -236,7 +236,7 @@ exports.run = function (args) {
                 .test()
                 .then(() => {
                     spinner.stop(true);
-                    console.log(style.success('Connection successfully established.'));
+                    console.log(style.success('Connection successfully established.'))
                 })
                 .catch((v) => {
                     spinner.stop(true);
