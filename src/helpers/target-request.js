@@ -34,14 +34,14 @@ exports.TargetRequest = class {
   get requestHeaders () {
     return new Promise((resolve, reject) => {
       this.accessToken.token
-                .then((v) => {
-                  resolve({
-                    'Content-Type': 'application/vnd.adobe.target.v1+json',
-                    'Authorization': 'Bearer ' + v['access_token'],
-                    'X-Api-Key': this.account.apiKey
-                  })
-                })
-                .catch((v) => reject(new Error('Failed to retrieve request access token.\n' + v)))
+        .then((v) => {
+          resolve({
+            'Content-Type': 'application/vnd.adobe.target.v1+json',
+            'Authorization': 'Bearer ' + v['access_token'],
+            'X-Api-Key': this.account.apiKey
+          })
+        })
+        .catch((v) => reject(new Error('Failed to retrieve request access token.\n' + v)))
     })
   }
 
@@ -50,8 +50,8 @@ exports.TargetRequest = class {
 
     const generateRequestPath = (account, path, params) => {
       return '/' + this.account.tenant +
-                ((typeof params === 'undefined' || Object.keys(params).length === 0)
-                    ? path : path + '?' + queryString.stringify(params))
+        ((typeof params === 'undefined' || Object.keys(params).length === 0)
+          ? path : path + '?' + queryString.stringify(params))
     }
 
     const options = {
@@ -78,27 +78,27 @@ exports.TargetRequest = class {
       return (path, params, data) => {
         return new Promise((resolve, reject) => {
           this.requestHeaders
-                        .then((headers) => {
-                          const bodyData = queryString.stringify(data)
-                          const req = request(
-                                Object.assign(
-                                    {}, headers,
-                                    {'Content-Length': Buffer.byteLength(bodyData)}
-                                ),
-                                path, params, resolve, reject
-                            )
-                          req.write(bodyData)
-                          req.end()
-                        })
-                        .catch(reject)
+            .then((headers) => {
+              const bodyData = queryString.stringify(data)
+              const req = request(
+                Object.assign(
+                  {}, headers,
+                  {'Content-Length': Buffer.byteLength(bodyData)}
+                ),
+                path, params, resolve, reject
+              )
+              req.write(bodyData)
+              req.end()
+            })
+            .catch(reject)
         })
       }
     } else {
       return (path, params) => {
         return new Promise((resolve, reject) => {
           this.requestHeaders
-                        .then((headers) => request(headers, path, params, resolve, reject).end())
-                        .catch(reject)
+            .then((headers) => request(headers, path, params, resolve, reject).end())
+            .catch(reject)
         })
       }
     }
