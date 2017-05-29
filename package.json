@@ -20,7 +20,6 @@
     "preferences": "^0.2.1"
   },
   "devDependencies": {
-    "intern": "^3.4.4",
     "jasmine": "^2.6.0"
   }
 }
