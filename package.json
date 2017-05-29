@@ -6,7 +6,9 @@
   "license": "ISC",
   "preferGlobal": true,
   "scripts": {
-    "dev": "nodemon --watch src node_modules/jasmine/bin/jasmine.js",
+    "check": "concurrently \"npm test\" \"npm run lint\"",
+    "dev": "nodemon --watch src --watch spec --watch index.js node_modules/concurrently/src/main.js \"npm test\" \"npm run lint\"",
+    "lint": "eslint .",
     "test": "jasmine"
   },
   "bin": {
@@ -21,6 +23,7 @@
     "preferences": "^0.2.1"
   },
   "devDependencies": {
+    "concurrently": "^3.4.0",
     "eslint": "^3.19.0",
     "eslint-config-standard": "^10.2.1",
     "eslint-plugin-import": "^2.3.0",

@@ -11,3 +11,7 @@ describe('It should export account preferences', () => {
   it('account.list is an array', () => expect(accountPreferences.list.constructor.name).toEqual('Array'))
   it('account.current is a string', () => expect(typeof accountPreferences.current).toEqual('string'))
 })
+
+describe('', () => {
+  it('', () => expect(1).toBe(1))
+})
