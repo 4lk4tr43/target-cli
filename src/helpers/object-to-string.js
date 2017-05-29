@@ -14,7 +14,6 @@ exports.render = function (o) {
 
   const renderRecursive = (o, l) => {
     switch (typeof o) {
-      case 'Array':
       case 'object':
         let fringe = ''
         for (let p in o) {

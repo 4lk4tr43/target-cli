@@ -5,13 +5,7 @@
 const account = require('../src/helpers/accounts')
 
 describe('It should export account preferences', () => {
-  const accountPreferences = account.accountPreferences
-
-  it('account variable exists', () => expect(accountPreferences).not.toBeUndefined())
-  it('account.list is an array', () => expect(accountPreferences.list.constructor.name).toEqual('Array'))
-  it('account.current is a string', () => expect(typeof accountPreferences.current).toEqual('string'))
-})
-
-describe('', () => {
-  it('', () => expect(1).toBe(1))
+  it('accountPreferences variable exists', () => expect(account.accountPreferences).not.toBeUndefined())
+  it('accountPreferences.list is an array', () => expect(account.accountPreferences.list.constructor.name).toEqual('Array'))
+  it('accountPreferences.current is a string', () => expect(typeof account.accountPreferences.current).toEqual('string'))
 })
