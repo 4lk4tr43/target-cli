@@ -35,10 +35,9 @@ exports.run = function (args) {
       Activity.info(minimist(args.slice(1)))
         .then(v => {
           v.forEach(activity => {
-            console.log(style.info(activity['name'] + '\n'))
+            console.log('\n' + style.info(activity['name']))
 
             activity['experiences'].forEach(experience => {
-              console.log(experience['offerLocations'])
               const table = new Table({
                 head: ['name', 'offer ID', 'location local ID']
               })
