@@ -236,7 +236,7 @@ exports.run = function (args) {
                   spinner.stop(true)
                   console.log(style.success('Connection successfully established.'))
                 })
-                .catch((v) => {
+                .catch(v => {
                   spinner.stop(true)
                   console.error(style.error('Connection failed.\n') + v)
                 })

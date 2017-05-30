@@ -7,6 +7,7 @@ const targetActivities = require('../helpers/target-activities')
 const ActivityList = targetActivities.ActivityList
 const Activity = targetActivities.Activity
 const style = require('../helpers/style')
+const Spinner = require('cli-spinner').Spinner
 
 exports.run = function (args) {
   switch (args[0]) {
@@ -32,11 +33,15 @@ exports.run = function (args) {
       break
 
     case 'experiences':
+      const spinner = new Spinner('Connecting... %s')
+      spinner.setSpinnerString(style.defaultSpinner)
+      spinner.start()
+
       Activity.info(minimist(args.slice(1)))
         .then(v => {
+          spinner.stop(true)
           v.forEach(activity => {
             console.log('\n' + style.info(activity['name']))
-
             activity['experiences'].forEach(experience => {
               const table = new Table({
                 head: ['name', 'offer ID', 'location local ID']
@@ -48,10 +53,13 @@ exports.run = function (args) {
                   location['locationLocalId']
                 ])
               })
-
               console.log(table.toString())
             })
           })
+        })
+        .catch(v => {
+          spinner.stop(true)
+          console.error(style.error('Response did not complete.\n') + JSON.stringify(v))
         })
       break
 
