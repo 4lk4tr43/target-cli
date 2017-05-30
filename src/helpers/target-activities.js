@@ -33,6 +33,7 @@ exports.Activity = class {
             .then(resolve)
             .catch(reject)
         })
+        .catch(reject)
     })
   }
 }

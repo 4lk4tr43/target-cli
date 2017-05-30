@@ -61,6 +61,8 @@ exports.TargetRequest = class {
     }
 
     const request = (headers, path, params, resolve, reject) => {
+      let data = ''
+
       const req = https.request(
         Object.assign({}, options, {
           headers: headers,
@@ -68,9 +70,13 @@ exports.TargetRequest = class {
         }),
         (res) => {
           res.setEncoding('utf8')
-          res.on('data', (data) => resolve(JSON.parse(data)))
+          res.on('data', d => { data += d })
+          res.on('end', () => {
+            resolve(JSON.parse(data))
+          })
         })
       req.on('error', reject)
+
       return req
     }
 

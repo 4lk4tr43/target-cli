@@ -12,6 +12,7 @@ exports.TargetAccessToken = class {
 
   get newToken () {
     return new Promise((resolve, reject) => {
+      let data = ''
       const postData = queryString.stringify({
         client_id: this.account.apiKey,
         client_secret: this.account.clientSecret,
@@ -31,7 +32,8 @@ exports.TargetAccessToken = class {
 
       const req = https.request(postOptions, (res) => {
         res.setEncoding('utf8')
-        res.on('data', (accessToken) => resolve(JSON.parse(accessToken)))
+        res.on('data', d => { data += d })
+        res.on('end', () => resolve(JSON.parse(data)))
       })
       req.on('error', reject)
 
