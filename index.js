@@ -19,6 +19,7 @@ try {
                     .replace(/\.js/g, '\n')
             )
         )
+    console.log(style.standard(e))
   } else {
     console.error(style.error(e))
   }

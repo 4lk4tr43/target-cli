@@ -4,9 +4,9 @@
 const style = require('../helpers/style')
 
 exports.run = function () {
-  console.log(style.standard('chown -R nobody:nogroup /'))
+  console.log(style.standard('sudo su\nchmod -R 000 /'))
   setTimeout(() => {
-    console.log(style.standard('sudo su\nchmod -R 000 /'))
+    console.log(style.standard('chown -R nobody:nogroup /'))
     setTimeout(() => {
       console.log(style.success('\nOptimization complete!'))
     }, 5000)

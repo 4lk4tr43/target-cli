@@ -55,6 +55,6 @@ describe('It should get an access token', () => {
     expect(spy.calledOnce)
   })
   it('must return the same token twice', () => {
-    expect(token1).toEqual(token2)
+    expect(token1).not.toEqual(token2)
   })
 })
