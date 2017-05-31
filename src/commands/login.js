@@ -7,7 +7,6 @@ const Spinner = require('cli-spinner').Spinner
 const style = require('../helpers/style')
 const TargetRequest = require('../helpers/target-request')
 const accounts = require('../helpers/accounts')
-const objectToString = require('../helpers/object-to-string')
 
 let accountPreferences = accounts.accountPreferences
 
@@ -109,7 +108,7 @@ const loginAddQuestion = function (account) {
       }
       if (account.list.filter((v) => v.name === value).length) {
         return style.warning('Login name does already exist. Please do not use the following names:\n') +
-                    style.standard(account.list.map((v) => v.name).join('\n'))
+                    style.standard(account.list.map(account => account.name).join('\n'))
       }
       return true
     }
@@ -222,8 +221,8 @@ const loginAddResponse = function (answer) {
 /** Module exports **/
 exports.run = function (args) {
   switch (args[0]) {
-    case 'getDetails':
-      console.log(objectToString.render(accounts.current()))
+    case 'current':
+      console.log(accounts.current())
       break
 
     case 'check':
@@ -231,15 +230,23 @@ exports.run = function (args) {
       spinner.setSpinnerString(style.defaultSpinner)
       spinner.start()
       new TargetRequest.TargetRequest(accounts.current())
-                .test()
-                .then(() => {
-                  spinner.stop(true)
-                  console.log(style.success('Connection successfully established.'))
-                })
-                .catch(v => {
-                  spinner.stop(true)
-                  console.error(style.error('Connection failed.\n') + v)
-                })
+        .test()
+        .then(() => {
+          spinner.stop(true)
+          console.log(style.success('Connection successfully established.'))
+        })
+        .catch(v => {
+          spinner.stop(true)
+          console.error(style.error('Connection failed.\n') + v)
+        })
+      break
+
+    case 'export':
+      console.log(accounts.export())
+      break
+
+    case 'import':
+      console.error(style.error(accounts.import(fs.readFileSync(args[1]))))
       break
 
     default:
@@ -249,5 +256,5 @@ exports.run = function (args) {
 }
 
 exports.help = function () {
-  console.log(style.info('Manage and login into Adobe Service Accounts.'))
+  console.log(style.info(''))
 }
