@@ -72,7 +72,7 @@ exports.TargetRequest = class {
           res.setEncoding('utf8')
           res.on('data', d => { data += d })
           res.on('end', () => {
-            resolve(JSON.parse(data))
+            resolve(data)
           })
         })
       req.on('error', reject)
@@ -85,7 +85,7 @@ exports.TargetRequest = class {
         return new Promise((resolve, reject) => {
           this.requestHeaders
             .then((headers) => {
-              const bodyData = queryString.stringify(data)
+              const bodyData = JSON.stringify(data)
               const req = request(
                 Object.assign(
                   {}, headers,

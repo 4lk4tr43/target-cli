@@ -222,7 +222,7 @@ const loginAddResponse = function (answer) {
 /** Module exports **/
 exports.run = function (args) {
   switch (args[0]) {
-    case 'info':
+    case 'getDetails':
       console.log(objectToString.render(accounts.current()))
       break
 
